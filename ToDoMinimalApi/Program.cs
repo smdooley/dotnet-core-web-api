@@ -7,7 +7,31 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<TodoDb>(opt => opt.UseInMemoryDatabase("TodoList"));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+// Enable the API Explorer and generate OpenAPI document
+builder.Services.AddEndpointsApiExplorer();
+
+// Adds the Swagger OpenAPI document generator to the application services and configures it to provide more information about the API
+builder.Services.AddOpenApiDocument(config =>
+{
+    config.DocumentName = "TodoMinimalApi";
+    config.Title = "Todo Minimal API";
+    config.Version = "v1";
+});
+
 var app = builder.Build();
+
+// Enable the Swagger middleware for serving the generated JSON document and the Swagger UI
+if (app.Environment.IsDevelopment())
+{
+    app.UseOpenApi();
+    app.UseSwaggerUi(config =>
+    {
+        config.DocumentTitle = "Todo Minimal API";
+        config.Path = "/swagger";
+        config.DocumentPath = "/swagger/{documentName}/swagger.json";
+        config.DocExpansion = "list";
+    });
+}
 
 app.MapGet("/todoitems", async (TodoDb db) =>
     await db.Todos.ToListAsync());
